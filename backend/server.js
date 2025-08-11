@@ -10,8 +10,8 @@ import authRoutes from "./routes/authRoutes.js";
 import paperRoutes from "./routes/paperRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
-
-dotenv.config();
+const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.development";
+dotenv.config({ path: envFile });
 connectDB();
 
 const app = express();
