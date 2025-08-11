@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { fetchNotifications, markRead } from "../api/notifications";
+import { fetchNotifications} from "../api/notifications";
 
 export function NotificationBell() {
   const { token, socket } = useContext(AuthContext);
