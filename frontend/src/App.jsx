@@ -18,9 +18,9 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
+        <div style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
           <Navbar />
-          <main className="max-w-5xl mx-auto p-4">
+          <main style={{ maxWidth: 960, margin: "0 auto", padding: "2rem 1.5rem" }}>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth/success" element={<AuthSuccess />} />

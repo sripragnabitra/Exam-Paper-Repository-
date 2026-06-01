@@ -10,84 +10,111 @@ export default function PaperView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPaper(id, token)
-      .then((res) => setPaper(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    getPaper(id, token).then(r => setPaper(r.data)).catch(() => {}).finally(() => setLoading(false));
   }, [id, token]);
 
-  const handleDownload = () => {
-    if (paper?.fileUrl) {
-      window.open(paper.fileUrl, "_blank");
-    }
-  };
-
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+  if (loading) return <div style={{ padding: "4rem", textAlign: "center" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>;
   if (!paper) return (
-    <div className="p-8 text-center">
-      <div className="text-gray-500 mb-4">Paper not found.</div>
-      <Link to="/search" className="text-blue-600 underline">Back to search</Link>
+    <div style={{ padding: "4rem", textAlign: "center" }}>
+      <div style={{ color: "var(--color-ink-3)", marginBottom: "1rem" }}>Paper not found.</div>
+      <Link to="/search" className="btn btn-secondary">← Back to search</Link>
     </div>
   );
 
-  return (
-    <div>
-      <div className="mb-4">
-        <Link to="/search" className="text-blue-600 text-sm">← Back to search</Link>
-      </div>
+  const meta = [
+    { label: "Course", value: paper.courseCode },
+    { label: "Year", value: paper.academicYear },
+    { label: "Semester", value: paper.semester },
+    { label: "Type", value: paper.examType },
+    { label: "Status", value: paper.status },
+  ].filter(m => m.value);
 
-      <div className="bg-white border rounded p-6">
-        <h2 className="text-xl font-bold mb-1">{paper.title || `${paper.courseCode} Exam`}</h2>
-        <div className="text-sm text-gray-500 mb-4">
+  return (
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: "2rem 1rem" }} className="fade-in">
+      <Link to="/search" style={{ fontSize: "0.85rem", color: "var(--color-ink-3)", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: "1.5rem" }}>
+        ← Back to search
+      </Link>
+
+      {/* Paper header */}
+      <div className="card" style={{ padding: "2rem", marginBottom: "1.5rem" }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.75rem", marginBottom: "0.5rem" }}>
+          {paper.title || `${paper.courseCode} Exam`}
+        </h1>
+        <div style={{ color: "var(--color-ink-3)", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
           Uploaded by {paper.uploader?.fullName || "Unknown"}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {[
-            ["Course", paper.courseCode],
-            ["Year", paper.academicYear],
-            ["Semester", paper.semester],
-            ["Type", paper.examType],
-          ].map(([label, value]) =>
-            value ? (
-              <div key={label} className="bg-gray-50 rounded p-2">
-                <div className="text-xs text-gray-500">{label}</div>
-                <div className="font-medium text-sm">{value}</div>
-              </div>
-            ) : null
-          )}
+        {/* Metadata chips */}
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
+          {meta.map(({ label, value }) => (
+            <div key={label} style={{
+              background: "var(--color-surface-2)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "6px 14px",
+            }}>
+              <div style={{ fontSize: "0.7rem", color: "var(--color-ink-3)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{label}</div>
+              <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-ink)" }}>{value}</div>
+            </div>
+          ))}
         </div>
 
-        <button
-          onClick={handleDownload}
-          className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700"
+        <a
+          href={paper.fileUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-primary"
+          style={{ padding: "10px 24px" }}
         >
-          Download PDF
-        </button>
+          ↓ Download PDF
+        </a>
       </div>
 
+      {/* Questions */}
       {paper.questions?.length > 0 && (
-        <section className="mt-6">
-          <h3 className="font-semibold text-lg mb-3">
+        <div>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.35rem", marginBottom: "1rem" }}>
             Extracted Questions ({paper.questions.length})
-          </h3>
-          <div className="space-y-2">
+          </h2>
+          <div style={{ display: "grid", gap: "0.75rem" }}>
             {paper.questions.map((q, i) => (
-              <div key={q._id || i} className="bg-white border rounded p-3">
-                <div className="font-medium text-sm text-gray-500 mb-1">
-                  Q{q.questionIndex || i + 1}
-                  {q.topic && <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">{q.topic}</span>}
+              <div key={q._id || i} className="card" style={{ padding: "1.1rem 1.25rem" }}>
+                <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+                  <div style={{
+                    flexShrink: 0,
+                    width: 28, height: 28,
+                    background: "var(--color-accent-light)",
+                    color: "var(--color-accent)",
+                    borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.75rem", fontWeight: 700,
+                  }}>
+                    {q.questionIndex || i + 1}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "0.9rem", color: "var(--color-ink)", lineHeight: 1.6 }}>{q.text}</div>
+                    {q.topic && (
+                      <span className="badge badge-blue" style={{ marginTop: 6 }}>{q.topic}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-800">{q.text}</div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
       )}
 
-      {paper.questions?.length === 0 && paper.status !== "approved" && (
-        <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-          This paper is {paper.status}. Questions will be extracted after approval.
+      {paper.status === "pending" && (
+        <div style={{
+          marginTop: "1rem",
+          padding: "1rem 1.25rem",
+          background: "var(--color-yellow-light)",
+          border: "1px solid #fcd34d",
+          borderRadius: "var(--radius-md)",
+          color: "var(--color-yellow)",
+          fontSize: "0.875rem",
+        }}>
+          ⏳ This paper is pending admin review. Questions will be extracted after approval.
         </div>
       )}
     </div>

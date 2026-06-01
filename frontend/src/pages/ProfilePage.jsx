@@ -3,131 +3,158 @@ import { AuthContext } from "../context/AuthContext";
 import { Link, Navigate } from "react-router-dom";
 import api from "../api/axios";
 
-const statusStyles = {
-  approved: "bg-green-100 text-green-700",
-  pending: "bg-yellow-100 text-yellow-700",
-  rejected: "bg-red-100 text-red-700",
-  ready_for_review: "bg-blue-100 text-blue-700",
+const statusConfig = {
+  approved: { label: "Approved", cls: "badge-green", icon: "✅" },
+  pending: { label: "Pending Review", cls: "badge-yellow", icon: "⏳" },
+  rejected: { label: "Rejected", cls: "badge-red", icon: "❌" },
+  ready_for_review: { label: "Processing", cls: "badge-blue", icon: "🔄" },
 };
 
 export default function ProfilePage() {
   const { user, token, loading } = useContext(AuthContext);
-  const [profile, setProfile] = useState(null);
+  const [papers, setPapers] = useState([]);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
     if (!token) return;
-    api
-      .get("/api/profile", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setProfile(res.data))
+    api.get("/api/profile", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => setPapers(res.data.papers || []))
       .catch(() => {})
       .finally(() => setFetching(false));
   }, [token]);
 
-  if (loading || fetching) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+  if (loading || fetching) return <div style={{ padding: "4rem", textAlign: "center", color: "var(--color-ink-3)" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  const { papers = [] } = profile || {};
-  const approved = papers.filter((p) => p.status === "approved").length;
-  const pending = papers.filter((p) => p.status === "pending").length;
-  const rejected = papers.filter((p) => p.status === "rejected").length;
+  const counts = {
+    approved: papers.filter(p => p.status === "approved").length,
+    pending: papers.filter(p => p.status === "pending").length,
+    rejected: papers.filter(p => p.status === "rejected").length,
+  };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Profile Card */}
-      <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold">
+    <div style={{ maxWidth: 760, margin: "0 auto", padding: "2rem 1rem" }} className="fade-in">
+      {/* Profile header */}
+      <div className="card" style={{ padding: "2rem", marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", gap: "1.25rem", alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: "50%",
+            background: "var(--color-accent)",
+            color: "white",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "1.5rem", fontWeight: 700, flexShrink: 0,
+          }}>
             {user.fullName?.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <h1 className="text-xl font-bold">{user.fullName}</h1>
-            <div className="text-gray-500 text-sm">{user.email}</div>
-            {user.isAdmin && (
-              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded mt-1 inline-block">
-                Admin
-              </span>
-            )}
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", margin: 0 }}>{user.fullName}</h1>
+              {user.isAdmin && <span className="badge badge-purple">Admin</span>}
+            </div>
+            <div style={{ color: "var(--color-ink-3)", fontSize: "0.875rem", marginTop: 4 }}>{user.email}</div>
           </div>
-          <div className="ml-auto text-center">
-            <div className="text-2xl font-bold text-blue-600">{user.credits ?? 0}</div>
-            <div className="text-xs text-gray-500">Credits</div>
+          <div style={{
+            textAlign: "center",
+            background: "var(--color-accent-light)",
+            border: "1px solid rgba(37,99,168,0.2)",
+            borderRadius: "var(--radius-md)",
+            padding: "0.75rem 1.5rem",
+          }}>
+            <div style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--color-accent)" }}>{user.credits ?? 0}</div>
+            <div style={{ fontSize: "0.72rem", color: "var(--color-ink-3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Credits</div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mt-6">
+        {/* Stats row */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "1rem", marginTop: "1.5rem",
+          paddingTop: "1.5rem", borderTop: "1px solid var(--color-border)",
+        }}>
           {[
-            { label: "Approved", count: approved, color: "text-green-600" },
-            { label: "Pending", count: pending, color: "text-yellow-600" },
-            { label: "Rejected", count: rejected, color: "text-red-600" },
+            { label: "Approved", count: counts.approved, color: "var(--color-green)" },
+            { label: "Pending", count: counts.pending, color: "var(--color-yellow)" },
+            { label: "Rejected", count: counts.rejected, color: "var(--color-red)" },
           ].map(({ label, count, color }) => (
-            <div key={label} className="bg-gray-50 rounded p-3 text-center">
-              <div className={`text-xl font-bold ${color}`}>{count}</div>
-              <div className="text-xs text-gray-500">{label}</div>
+            <div key={label} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: "1.5rem", fontWeight: 700, color }}>{count}</div>
+              <div style={{ fontSize: "0.78rem", color: "var(--color-ink-3)" }}>{label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* My Uploads */}
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-semibold">My Uploads ({papers.length})</h2>
-        <Link to="/upload" className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700">
-          + Upload New
-        </Link>
+      {/* Uploads list */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.35rem", margin: 0 }}>
+          My Uploads ({papers.length})
+        </h2>
+        <Link to="/upload" className="btn btn-primary" style={{ fontSize: "0.85rem" }}>+ Upload New</Link>
       </div>
 
-      <div className="space-y-3">
-        {papers.length === 0 && (
-          <div className="bg-white border rounded p-8 text-center text-gray-500">
-            You haven't uploaded any papers yet.{" "}
-            <Link to="/upload" className="text-blue-600 underline">Upload your first one!</Link>
-          </div>
-        )}
+      {papers.length === 0 ? (
+        <div className="card" style={{ padding: "3rem", textAlign: "center", color: "var(--color-ink-3)" }}>
+          No uploads yet.{" "}
+          <Link to="/upload" style={{ color: "var(--color-accent)" }}>Upload your first paper!</Link>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: "0.75rem" }}>
+          {papers.map((p) => {
+            const s = statusConfig[p.status] || { label: p.status, cls: "badge-blue", icon: "•" };
+            return (
+              <div key={p._id} className="card" style={{ padding: "1.25rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: 4 }}>
+                      {p.title || `${p.courseCode} — ${p.examType || "Exam"}`}
+                    </div>
+                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                      {[p.courseCode, p.academicYear, p.semester].filter(Boolean).map((v, i) => (
+                        <span key={i} style={{ fontSize: "0.78rem", color: "var(--color-ink-3)" }}>{v}</span>
+                      ))}
+                      <span style={{ fontSize: "0.78rem", color: "var(--color-ink-3)" }}>
+                        {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    </div>
 
-        {papers.map((p) => (
-          <div key={p._id} className="bg-white border rounded p-4 shadow-sm">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="font-medium">
-                  {p.title || `${p.courseCode} - ${p.examType || "Exam"}`}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">
-                  {[p.courseCode, p.academicYear, p.semester].filter(Boolean).join(" • ")}
-                </div>
-                <div className="text-xs text-gray-400 mt-1">
-                  Uploaded {new Date(p.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className={`text-xs px-2 py-1 rounded ${statusStyles[p.status] || "bg-gray-100 text-gray-600"}`}>
-                  {p.status}
-                </span>
-                {p.status === "approved" && (
-                  <Link to={`/papers/${p._id}`} className="text-xs text-blue-600 underline">
-                    View
-                  </Link>
-                )}
-                {p.creditsAwarded > 0 && (
-                  <span className="text-xs text-green-600">+{p.creditsAwarded} credits earned</span>
-                )}
-              </div>
-            </div>
+                    {p.status === "approved" && p.creditsAwarded > 0 && (
+                      <div style={{ marginTop: 8, fontSize: "0.8rem", color: "var(--color-green)", fontWeight: 600 }}>
+                        +{p.creditsAwarded} credits earned
+                      </div>
+                    )}
+                    {p.status === "rejected" && (
+                      <div style={{
+                        marginTop: 8, fontSize: "0.8rem",
+                        background: "var(--color-red-light)", color: "var(--color-red)",
+                        padding: "6px 10px", borderRadius: "var(--radius-sm)",
+                      }}>
+                        Rejected — you can upload a revised version.
+                      </div>
+                    )}
+                    {p.status === "pending" && (
+                      <div style={{
+                        marginTop: 8, fontSize: "0.8rem",
+                        color: "var(--color-yellow)", 
+                      }}>
+                        Waiting for admin review. You'll be notified.
+                      </div>
+                    )}
+                  </div>
 
-            {p.status === "rejected" && (
-              <div className="mt-2 text-xs bg-red-50 text-red-600 rounded p-2">
-                This paper was rejected. You can upload a revised version.
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                    <span className={`badge ${s.cls}`}>{s.icon} {s.label}</span>
+                    {p.status === "approved" && (
+                      <Link to={`/papers/${p._id}`} style={{ fontSize: "0.78rem", color: "var(--color-accent)" }}>
+                        View →
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-            {p.status === "pending" && (
-              <div className="mt-2 text-xs bg-yellow-50 text-yellow-700 rounded p-2">
-                Waiting for admin review. You'll be notified once reviewed.
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

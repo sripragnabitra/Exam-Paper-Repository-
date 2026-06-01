@@ -1,40 +1,69 @@
 import { Link } from "react-router-dom";
 
+const statusConfig = {
+  approved: { label: "Approved", cls: "badge-green" },
+  pending: { label: "Pending", cls: "badge-yellow" },
+  rejected: { label: "Rejected", cls: "badge-red" },
+  ready_for_review: { label: "Processing", cls: "badge-blue" },
+};
+
 export default function PaperCard({ paper }) {
+  const status = statusConfig[paper.status] || { label: paper.status, cls: "badge-blue" };
+
   return (
-    <div className="bg-white border rounded p-4 shadow-sm hover:shadow-md transition">
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <Link
-            to={`/papers/${paper._id}`}
-            className="font-semibold text-blue-600 hover:underline"
-          >
-            {paper.title || `${paper.courseCode || "Paper"} - ${paper.examType || "Exam"}`}
-          </Link>
-          <div className="text-sm text-gray-500 mt-1">
-            {[paper.courseCode, paper.academicYear, paper.semester]
-              .filter(Boolean)
-              .join(" • ")}
-          </div>
+    <div className="card" style={{
+      padding: "1.1rem 1.25rem",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: "1rem",
+      transition: "all 0.15s",
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Link to={`/papers/${paper._id}`} style={{
+          fontWeight: 600,
+          fontSize: "0.95rem",
+          color: "var(--color-accent)",
+          display: "block",
+          marginBottom: 4,
+          textDecoration: "none",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}>
+          {paper.title || `${paper.courseCode || "Paper"} — ${paper.examType || "Exam"}`}
+        </Link>
+
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {[paper.courseCode, paper.academicYear, paper.semester, paper.examType]
+            .filter(Boolean)
+            .map((val, i) => (
+              <span key={i} style={{ fontSize: "0.78rem", color: "var(--color-ink-3)" }}>
+                {val}
+              </span>
+            ))}
         </div>
-        <span className={`text-xs px-2 py-1 rounded ml-3 whitespace-nowrap ${
-          paper.status === "approved"
-            ? "bg-green-100 text-green-700"
-            : paper.status === "pending"
-            ? "bg-yellow-100 text-yellow-700"
-            : "bg-red-100 text-red-700"
-        }`}>
-          {paper.status}
-        </span>
+
+        {paper.matchedQuestions?.length > 0 && (
+          <div style={{
+            marginTop: 8,
+            padding: "6px 10px",
+            background: "var(--color-accent-light)",
+            borderRadius: "var(--radius-sm)",
+            fontSize: "0.78rem",
+            color: "var(--color-accent-dark)",
+            borderLeft: "3px solid var(--color-accent)",
+          }}>
+            <strong>Matched: </strong>
+            {paper.matchedQuestions[0].text.slice(0, 110)}
+            {paper.matchedQuestions[0].text.length > 110 ? "…" : ""}
+          </div>
+        )}
       </div>
 
-      {paper.matchedQuestions?.length > 0 && (
-        <div className="mt-2 text-sm text-gray-600 bg-gray-50 rounded p-2">
-          <span className="font-medium">Matched: </span>
-          {paper.matchedQuestions[0].text.slice(0, 120)}
-          {paper.matchedQuestions[0].text.length > 120 ? "..." : ""}
-        </div>
-      )}
+      <span className={`badge ${status.cls}`} style={{ flexShrink: 0, marginTop: 2 }}>
+        {status.label}
+      </span>
     </div>
   );
 }
