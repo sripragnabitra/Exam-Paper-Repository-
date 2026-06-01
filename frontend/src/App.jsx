@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
@@ -10,7 +10,9 @@ import NotificationsPage from "./pages/NotificationsPage";
 import AdminReviewPage from "./pages/AdminReviewPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import SubscriptionPage from "./pages/SubscriptionPage";
+import AuthSuccess from "./pages/AuthSuccess";
 import Landing from "./pages/Landing";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
   return (
@@ -21,15 +23,18 @@ export default function App() {
           <main className="max-w-5xl mx-auto p-4">
             <Routes>
               <Route path="/" element={<Landing />} />
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/auth/success" element={<AuthSuccess />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/papers/:id" element={<PaperView />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/admin/review" element={<AdminReviewPage />} />
               <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/subscription" element={<SubscriptionPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>

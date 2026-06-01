@@ -1,4 +1,5 @@
 import generateToken from "../utils/generateToken.js";
+import User from "../models/User.js";
 
 export const googleLoginSuccess = (req, res) => {
   if (!req.user) {
@@ -13,6 +14,22 @@ export const googleLoginSuccess = (req, res) => {
     credits: req.user.credits,
     token,
   });
+};
+
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-googleId");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      credits: user.credits,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 export const logoutUser = (req, res) => {

@@ -2,19 +2,39 @@ import { Link } from "react-router-dom";
 
 export default function PaperCard({ paper }) {
   return (
-    <div className="bg-white border rounded p-3 shadow-sm">
-      <div className="flex justify-between">
-        <div>
-          <Link to={`/papers/${paper._id}`} className="font-semibold text-blue-600">
-            {paper.title || `${paper.courseCode || ""} - ${paper.examType || ""}`}
+    <div className="bg-white border rounded p-4 shadow-sm hover:shadow-md transition">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <Link
+            to={`/papers/${paper._id}`}
+            className="font-semibold text-blue-600 hover:underline"
+          >
+            {paper.title || `${paper.courseCode || "Paper"} - ${paper.examType || "Exam"}`}
           </Link>
-          <div className="text-sm text-gray-600">{paper.year} • {paper.semester}</div>
+          <div className="text-sm text-gray-500 mt-1">
+            {[paper.courseCode, paper.academicYear, paper.semester]
+              .filter(Boolean)
+              .join(" • ")}
+          </div>
         </div>
-        <div className="text-sm text-gray-500">{paper.status}</div>
+        <span className={`text-xs px-2 py-1 rounded ml-3 whitespace-nowrap ${
+          paper.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : paper.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-red-100 text-red-700"
+        }`}>
+          {paper.status}
+        </span>
       </div>
-      <div className="mt-2 text-sm text-gray-700">
-        {paper.summary || (paper.questions?.slice?.(0,1).map(q=>q.text).join(" ") || "")}
-      </div>
+
+      {paper.matchedQuestions?.length > 0 && (
+        <div className="mt-2 text-sm text-gray-600 bg-gray-50 rounded p-2">
+          <span className="font-medium">Matched: </span>
+          {paper.matchedQuestions[0].text.slice(0, 120)}
+          {paper.matchedQuestions[0].text.length > 120 ? "..." : ""}
+        </div>
+      )}
     </div>
   );
 }

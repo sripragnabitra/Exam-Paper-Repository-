@@ -4,13 +4,23 @@ import Question from "../models/Question.js";
 
 export const searchPapers = async (req, res) => {
   try {
-    const { courseCode, academicYear, semester, keywords, topic, page = 1, limit = 20 } = req.query;
-    const paperFilter = {};
-    if (courseCode) paperFilter.courseCode = courseCode;
-    if (academicYear) paperFilter.academicYear = academicYear;
-    if (semester) paperFilter.semester = semester;
+    const {
+      courseCode,
+      academicYear,
+      year,          // alias for academicYear from frontend
+      semester,
+      keywords,
+      topic,
+      page = 1,
+      limit = 20,
+    } = req.query;
 
-    // If keywords provided — search in questions first (better granularity)
+    const paperFilter = { status: "approved" };
+    if (courseCode) paperFilter.courseCode = { $regex: courseCode, $options: "i" };
+    if (academicYear || year) paperFilter.academicYear = academicYear || year;
+    if (semester) paperFilter.semester = { $regex: semester, $options: "i" };
+
+    // If keywords provided — search in questions first
     if (keywords) {
       const qMatch = { text: { $regex: keywords, $options: "i" } };
       if (topic) qMatch.topic = topic;
@@ -22,7 +32,6 @@ export const searchPapers = async (req, res) => {
         .populate("uploader", "fullName email")
         .lean();
 
-      // attach matched question snippets
       const map = {};
       matchedQuestions.forEach((q) => {
         const pid = String(q.paper);
@@ -30,13 +39,17 @@ export const searchPapers = async (req, res) => {
         map[pid].push({ id: q._id, text: q.text });
       });
 
-      const results = papers.map((p) => ({ ...p, matchedQuestions: map[String(p._id)] || [] }));
+      const results = papers.map((p) => ({
+        ...p,
+        matchedQuestions: map[String(p._id)] || [],
+      }));
       return res.json({ results, total: results.length });
     }
 
     // No keywords: search papers
     const papers = await Paper.find(paperFilter)
       .populate("uploader", "fullName email")
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
     const total = await Paper.countDocuments(paperFilter);

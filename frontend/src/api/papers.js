@@ -8,8 +8,15 @@ export const uploadPaper = (formData, token) =>
     },
   });
 
+export const getPapers = (token) =>
+  api.get("/api/papers", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
 export const getPaper = (paperId, token) =>
-  api.get(`/api/papers/${paperId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  api.get(`/api/papers/${paperId}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
 
 export const downloadPaper = (paperId, token) =>
   api.get(`/api/papers/${paperId}/download`, {
@@ -17,7 +24,8 @@ export const downloadPaper = (paperId, token) =>
     responseType: "blob",
   });
 
+// Search uses /api/search endpoint
 export const searchPapers = (params) =>
-  api.get("/api/papers/search", { params });
+  api.get("/api/search", { params });
 
-export default { uploadPaper, getPaper, downloadPaper, searchPapers };
+export default { uploadPaper, getPapers, getPaper, downloadPaper, searchPapers };
